@@ -1,22 +1,63 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const connection = mysql.createConnection({
-        host: 'localhost',
-        port: 3306,
-        user: 'root',
-        password: 'mysqlpassword',
-        database: 'employees_db',
-    });
-connection.connect((err) => {
-    if (err) throw err;
-    runAction();
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'mysqlpassword',
+    database: 'employees_db',
 });
-    
+const addEmployee = () => {
+inquirer
+    .prompt({
+        name: 'first_name',
+        type: 'input',
+        message: 'Add employee\'s first name:'
+    },
+    {
+        name: 'last_name',
+        type: 'input',
+        message: 'Add employee\'s last name:'
+    },
+    {
+        name: 'role',
+        type: 'list',
+        message: 'Select employee\'s role:',
+        choices() {
+            const choiceArray = [];
+            results.forEach(() => {
+              choiceArray.push();
+            });
+            return choiceArray;
+        }
+    },
+    {
+        name: 'manager',
+        type: 'list',
+        message: 'Select employee\'s manager:'
+    })
+    .then((answers) => {
+        // answers.role.find(role);
+        connection.query(
+            'INSERT INTO employees SET ?',
+            {
+                first_name: answers.first_name,
+                last_name: answers.last_name,
+                role_id: role_id,
+                manager_id: manager_id,
+            },
+            (err) => {
+                if (err) throw err;
+                console.log('Your auction was created successfully!');
+                runAction();
+            })
+    })
+};
 const runAction = () => {
 inquirer
     .prompt({
     name: 'action',
-    type: 'rawlist',
+    type: 'list',
     message: 'What would you like to do?',
     choices: [
         'Add employee',
@@ -74,3 +115,8 @@ inquirer
     }
     });
 };
+connection.connect((err) => {
+    if (err) throw err;
+    runAction();
+});
+  
