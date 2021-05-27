@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
+const cTable = require('console.table');
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -7,51 +8,86 @@ const connection = mysql.createConnection({
     password: 'mysqlpassword',
     database: 'employees_db',
 });
+const departments = connection.execute(
+    'SELECT * FROM departments', (err, results) => {
+        if (err) throw err;
+        console.log(results);
+        return results;
+    }
+)
+const roles = connection.execute(
+    'SELECT * FROM roles', (err, results) => {
+        if (err) throw err;
+        console.log(results);
+        return results;
+    }
+)
+const employees = connection.execute(
+    'SELECT * FROM employees', (err, results) => {
+        if (err) throw err;
+        console.log(results);
+        // employees.manager_id = employees.find(employee => employee.role_id === roles.id);
+        return results;
+    }
+)
+
 const addEmployee = () => {
-inquirer
-    .prompt({
-        name: 'first_name',
-        type: 'input',
-        message: 'Add employee\'s first name:'
-    },
-    {
-        name: 'last_name',
-        type: 'input',
-        message: 'Add employee\'s last name:'
-    },
-    {
-        name: 'role',
-        type: 'list',
-        message: 'Select employee\'s role:',
-        choices() {
-            const choiceArray = [];
-            results.forEach(() => {
-              choiceArray.push();
-            });
-            return choiceArray;
-        }
-    },
-    {
-        name: 'manager',
-        type: 'list',
-        message: 'Select employee\'s manager:'
-    })
-    .then((answers) => {
-        // answers.role.find(role);
-        connection.query(
-            'INSERT INTO employees SET ?',
-            {
-                first_name: answers.first_name,
-                last_name: answers.last_name,
-                role_id: role_id,
-                manager_id: manager_id,
+    connection.query(
+        'SELECT * FROM employees', (err, results) => {
+        if (err) throw err;
+        inquirer
+            .prompt({
+                name: 'first_name',
+                type: 'input',
+                message: 'Add employee\'s first name:'
             },
-            (err) => {
-                if (err) throw err;
-                console.log('Your auction was created successfully!');
-                runAction();
+            {
+                name: 'last_name',
+                type: 'input',
+                message: 'Add employee\'s last name:'
+            },
+            {
+                name: 'role',
+                type: 'list',
+                message: 'Select employee\'s role:',
+                choices() {
+                    const choiceArray = [];
+                    roles.forEach(() => {
+                    choiceArray.push(roles.title);
+                    });
+                    return choiceArray;
+                }
+            },
+            {
+                name: 'manager',
+                type: 'list',
+                message: 'Select employee\'s manager:',
+                choices() {
+                    const choiceArray = [];
+                    departments.forEach(() => {
+                    choiceArray.push(departments.title);
+                    });
+                    return choiceArray;
+                }
             })
-    })
+            .then((answers) => {
+                const assignedRole = roles.title.find(role => role === answers.role);
+                const assignedManager = employees.find(role => role === answers.manager);
+                connection.query(
+                    'INSERT INTO employees SET ?',
+                    {
+                        first_name: answers.first_name,
+                        last_name: answers.last_name,
+                        role_id: assignedRole.id,
+                        manager_id: assignedManager.id,
+                    },
+                    (err) => {
+                        if (err) throw err;
+                        console.log('New employee was successfully added!');
+                        runAction();
+                    })
+            })
+        })
 };
 const runAction = () => {
 inquirer
